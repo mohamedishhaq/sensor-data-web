@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" crossorigin="anonymous">
   <style>
     body {
@@ -59,38 +59,38 @@
   </div>
 
   <script>
-    // Your Firebase config here - Update this with your Firebase project details
     const firebaseConfig = {
-        apiKey: "AIzaSyCZAwUYLExU7mmJ1r_9D85rkCJzk82mVGQ",
-        authDomain: "temphumdata-1023b.firebaseapp.com",
-        databaseURL: "https://temphumdata-1023b-default-rtdb.firebaseio.com/",
-        projectId: "temphumdata-1023b",
-        storageBucket: "temphumdata-1023b.appspot.com",
-        messagingSenderId: "655335727758",
-        appId: "1:655335727758:web:063481325d88ce26261fdf"
+      apiKey: "AIzaSyCZAwUYLExU7mmJ1r_9D85rkCJzk82mVGQ",
+      authDomain: "temphumdata-1023b.firebaseapp.com",
+      databaseURL: "https://temphumdata-1023b-default-rtdb.firebaseio.com",
+      projectId: "temphumdata-1023b",
+      storageBucket: "temphumdata-1023b.appspot.com",
+      messagingSenderId: "655335727758",
+      appId: "1:655335727758:web:063481325d88ce26261fdf"
     };
-    
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database(app);
-    
-    // Reference to the 'sensor_data' node
-    const tempRef = db.ref('sensor_data/latest_data');
 
-    // Fetch and display data every 10 seconds
-    setInterval(() => {
+    // Initialize Firebase (compat version)
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const tempRef = db.ref('/dhtSensor');
+
+    function updateSensorData() {
       tempRef.once('value').then(snapshot => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          document.getElementById('temperature').innerText = data.temperature + '°C';
-          document.getElementById('humidity').innerText = data.humidity + '%';
+          document.getElementById('temperature').innerText = data.temperature;
+          document.getElementById('humidity').innerText = data.humidity;
         } else {
           console.error("No data available");
         }
       }).catch(err => {
         console.error("Error getting data from Firebase: ", err);
       });
-    }, 10000);
+    }
+
+    // Update every 10 seconds
+    updateSensorData();
+    setInterval(updateSensorData, 10000);
   </script>
 </body>
 </html>

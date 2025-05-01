@@ -3,7 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" crossorigin="anonymous">
   <style>
     body {
@@ -63,6 +63,7 @@
     const firebaseConfig = {
         apiKey: "AIzaSyCZAwUYLExU7mmJ1r_9D85rkCJzk82mVGQ",
         authDomain: "temphumdata-1023b.firebaseapp.com",
+        databaseURL: "https://temphumdata-1023b-default-rtdb.firebaseio.com/",
         projectId: "temphumdata-1023b",
         storageBucket: "temphumdata-1023b.appspot.com",
         messagingSenderId: "655335727758",
@@ -71,21 +72,23 @@
     
     // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore(app);
+    const db = firebase.database(app);
     
-    // Get sensor data from Firestore
-    const tempRef = db.collection('sensor_data').doc('latest_data');
+    // Reference to the 'sensor_data' node
+    const tempRef = db.ref('sensor_data/latest_data');
 
     // Fetch and display data every 10 seconds
     setInterval(() => {
-      tempRef.get().then(doc => {
-        if (doc.exists) {
-          const data = doc.data();
+      tempRef.once('value').then(snapshot => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
           document.getElementById('temperature').innerText = data.temperature + '°C';
           document.getElementById('humidity').innerText = data.humidity + '%';
+        } else {
+          console.error("No data available");
         }
       }).catch(err => {
-        console.error("Error getting document: ", err);
+        console.error("Error getting data from Firebase: ", err);
       });
     }, 10000);
   </script>

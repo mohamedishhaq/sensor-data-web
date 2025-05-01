@@ -63,9 +63,9 @@
         .then(csv => {
           const lines = csv.trim().split('\n');
           const latest = lines[lines.length - 1].split(',');
-          const temperature = latest[0];
-          const humidity = latest[1];
-
+          const temperature = latest[1]; // Second column
+          const humidity = latest[2];    // Third column
+  
           document.getElementById('temperature').innerText = temperature;
           document.getElementById('humidity').innerText = humidity;
         })
@@ -73,9 +73,10 @@
           console.error("Error fetching CSV:", error);
         });
     }
-
-    fetchCSVData(); // Initial load
-    setInterval(fetchCSVData, 5000); // Repeat every 5 seconds
+  
+    fetchCSVData(); // Load once on page load
+    setInterval(fetchCSVData, 5000); // Update every 5 seconds
   </script>
+  
 </body>
 </html>

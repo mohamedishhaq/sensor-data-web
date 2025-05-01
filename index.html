@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" crossorigin="anonymous">
   <style>
     body {
@@ -17,45 +17,45 @@
       background-color: rgba(255,255,255,0.1);
       border-radius: 20px;
       padding: 30px;
-      max-width: 400px;
+      max-width: 800px;
       margin: auto;
       box-shadow: 0 8px 16px rgba(0,0,0,0.3);
       backdrop-filter: blur(5px);
+      overflow-x: auto;
     }
-    .sensor-block i { font-size: 3rem; margin-bottom: 10px; }
-    .value { font-size: 2.4rem; font-weight: bold; }
-    .link-btn {
-      display: inline-block;
-      margin-top: 25px;
-      padding: 12px 20px;
-      font-size: 1rem;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+    th {
       background-color: #0077cc;
       color: white;
-      text-decoration: none;
-      border-radius: 10px;
-      transition: background-color 0.3s;
     }
-    .link-btn:hover {
-      background-color: #005fa3;
+    tr:nth-child(even) {
+      background-color: rgba(255, 255, 255, 0.3);
     }
   </style>
 </head>
 <body>
-  <h2>ESP32 DHT Sensor Monitor</h2>
+  <h2>ESP32 DHT Sensor Monitor (History)</h2>
   <div class="card">
-    <div class="sensor-block">
-      <i class="fas fa-thermometer-half" style="color:#ffcc70;"></i>
-      <span class="label">Temperature</span>
-      <span class="value"><span id="temperature">Loading...</span><sup>&deg;C</sup></span>
-    </div>
-    <div class="sensor-block">
-      <i class="fas fa-tint" style="color:#00e4d0;"></i>
-      <span class="label">Humidity</span>
-      <span class="value"><span id="humidity">Loading...</span><sup>%</sup></span>
-    </div>
-    <a class="link-btn" href="https://docs.google.com/spreadsheets/d/14A_k2cI7etfvzw5s8kNCnQ0KxCdnOoyirIRWtjuYHF4/edit?usp=sharing" target="_blank">
-      View Google Sheet
-    </a>
+    <table>
+      <thead>
+        <tr>
+          <th>Temperature (°C)</th>
+          <th>Humidity (%)</th>
+          <th>Timestamp (s)</th>
+        </tr>
+      </thead>
+      <tbody id="sensorData">
+        <tr><td colspan="3">Loading...</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <script>
@@ -69,28 +69,38 @@
       appId: "1:655335727758:web:063481325d88ce26261fdf"
     };
 
-    // Initialize Firebase (compat version)
-    firebase.initializeApp(firebaseConfig);
+    const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const tempRef = db.ref('/dhtSensor');
 
-    function updateSensorData() {
+    const tempRef = db.ref('/dhtSensor');
+    const sensorData = document.getElementById('sensorData');
+
+    function loadSensorData() {
       tempRef.once('value').then(snapshot => {
+        sensorData.innerHTML = '';
         if (snapshot.exists()) {
-          const data = snapshot.val();
-          document.getElementById('temperature').innerText = data.temperature;
-          document.getElementById('humidity').innerText = data.humidity;
+          snapshot.forEach(childSnapshot => {
+            const data = childSnapshot.val();
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${data.temperature}</td>
+              <td>${data.humidity}</td>
+              <td>${data.timestamp}</td>
+            `;
+            sensorData.appendChild(row);
+          });
         } else {
-          console.error("No data available");
+          sensorData.innerHTML = '<tr><td colspan="3">No data available</td></tr>';
         }
       }).catch(err => {
         console.error("Error getting data from Firebase: ", err);
+        sensorData.innerHTML = '<tr><td colspan="3">Error loading data</td></tr>';
       });
     }
 
-    // Update every 10 seconds
-    updateSensorData();
-    setInterval(updateSensorData, 10000);
+    // Load data initially and refresh every 10 seconds
+    loadSensorData();
+    setInterval(loadSensorData, 10000);
   </script>
 </body>
 </html>

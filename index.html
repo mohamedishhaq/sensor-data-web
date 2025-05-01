@@ -28,31 +28,22 @@
 
     let unsubscribe = null;
 
-    // Function to get current date and time
-    function getCurrentDateTime() {
-      const now = new Date();
-      return now.toLocaleString(); // This gives current date and time in local format
-    }
-
     function startListening() {
       if (unsubscribe) return; // already listening
       sensorData.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
       unsubscribe = onValue(tempRef, (snapshot) => {
         const data = snapshot.val();
         sensorData.innerHTML = '';
-        console.log("Firebase Data: ", data); // Debugging log
         if (data) {
           const keys = Object.keys(data);
-          keys.sort((a, b) => data[b].timestamp - data[a].timestamp);
+          keys.sort((a, b) => data[b].timestamp.localeCompare(data[a].timestamp)); // Sort by timestamp string
           keys.forEach(key => {
             const record = data[key];
-            console.log("Record: ", record); // Debugging log for individual record
-            const currentDateTime = getCurrentDateTime(); // Get the current date and time
             const row = document.createElement('tr');
             row.innerHTML = `
               <td>${record.temperature}</td>
               <td>${record.humidity}</td>
-              <td>${currentDateTime}</td>
+              <td>${record.timestamp}</td>
             `;
             sensorData.appendChild(row);
           });
@@ -132,6 +123,25 @@
     button:hover {
       background-color: #005fa3;
     }
+
+    /* Floating link button */
+    .floating-link {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #0077cc;
+      color: white;
+      padding: 15px;
+      border-radius: 50%;
+      font-size: 20px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      z-index: 999;
+      transition: background-color 0.3s;
+    }
+    .floating-link:hover {
+      background-color: #005fa3;
+    }
   </style>
 </head>
 <body>
@@ -142,7 +152,7 @@
         <tr>
           <th>Temperature (°C)</th>
           <th>Humidity (%)</th>
-          <th>Current Date and Time</th>
+          <th>Timestamp (Raw)</th>
         </tr>
       </thead>
       <tbody id="sensorData">
@@ -154,5 +164,13 @@
       <button id="stopBtn"><i class="fas fa-stop"></i> Stop</button>
     </div>
   </div>
+
+  <!-- Floating Google Sheet Link -->
+  <a href="https://docs.google.com/spreadsheets/d/14A_k2cI7etfvzw5s8kNCnQ0KxCdnOoyirIRWtjuYHF4/edit?gid=0#gid=0" 
+     target="_blank" 
+     class="floating-link" 
+     title="Open Google Sheet">
+    <i class="fas fa-link"></i>
+  </a>
 </body>
 </html>
